@@ -1,0 +1,147 @@
+#Imports
+import tensorflow as tf
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow_datasets as tfds
+from tensorflow.keras.layers import Conv2D, MaxPool2D, Dense, Flatten, InputLayer, BatchNormalization
+from tensorflow.keras.losses import BinaryCrossentropy
+from tensorflow.keras.optimizers import Adam 
+from tensorflow.keras.metrics import Accuracy
+
+
+# Importing our dataset from tensorflow datasets
+
+from tensorflow_datasets.core import dataset_info
+dataset, dataset_info = tfds.load('malaria', with_info =True, as_supervised=True, shuffle_files=True, split=['train'])
+
+dataset_info
+
+# Taking a look at our data
+for data in dataset[0].take(1):
+  print(data)
+
+def splits(dataset, TRAIN_RATIO, VAL_RATIO, TEST_RATIO):
+  DATASET_SIZE = len(dataset)
+  train_dataset = dataset.take(int(TRAIN_RATIO*DATASET_SIZE))
+
+  val_dataset = dataset.skip(int(TRAIN_RATIO*DATASET_SIZE))
+  val_dataset = val_dataset.take(int(VAL_RATIO*DATASET_SIZE))
+  
+  test_dataset = dataset.skip(int(VAL_RATIO*DATASET_SIZE))
+  return train_dataset, val_dataset, test_dataset
+
+
+# Split the DATASET into TRAIN, TEST, and VAL with TAKE and SKIP method
+TRAIN_RATIO = 0.8
+VAL_RATIO = 0.1
+TEST_RATIO = 0.1 
+
+train_dataset, val_dataset, test_dataset = splits(dataset[0], TRAIN_RATIO, VAL_RATIO, TEST_RATIO)
+
+# Data Visualization
+
+for i, (image, label) in enumerate(train_dataset.take(16)):
+  ax = plt.subplot(4, 4, i+1)
+  plt.imshow(image)
+  plt.title(dataset_info.features['label'].int2str(label))
+
+
+# Data Processing
+// Resize (224)
+// Normalization VS Standardize
+// If the pixel values revolve around a particular mean value we choose to standardize.
+// But, if the pixel values are very mostly different from eachother then we choose to normalize.
+
+IM_SIZE = 224
+def resize_rescale(image, label):
+  return tf.image.resize(image, (IM_SIZE, IM_SIZE))/255.0, label
+
+
+train_dataset = train_dataset.map(resize_rescale)
+val_dataset = val_dataset.map(resize_rescale)
+test_dataset = test_dataset.map(resize_rescale)
+
+for image, label in train_dataset.take(1):
+  print(image, label)
+
+
+train_dataset = train_dataset.shuffle(buffer_size=8, reshuffle_each_iteration=True).batch(32).prefetch(tf.data.AUTOTUNE)
+val_dataset = val_dataset.shuffle(buffer_size=8, reshuffle_each_iteration=True).batch(32).prefetch(tf.data.AUTOTUNE)
+
+train_dataset
+val_dataset
+
+
+# Model Creation
+
+// Build the Model
+
+model = tf.keras.Sequential([
+                              InputLayer(input_shape=(IM_SIZE, IM_SIZE, 3)),
+
+                              Conv2D(filters=6, kernel_size=3, strides=1, padding='valid', activation='relu'),
+                              BatchNormalization(),
+                              MaxPool2D(pool_size=2, strides=2),
+
+                              Conv2D(filters=16, kernel_size=3, strides=1, padding='valid', activation='relu'),
+                              BatchNormalization(),
+                              MaxPool2D(pool_size=2, strides=2),
+
+                              Flatten(),
+
+                              Dense(256, activation='relu'),
+                              BatchNormalization(),
+                              Dense(128, activation='relu'),
+                              BatchNormalization(),
+                              Dense(1, activation='sigmoid')
+
+])
+
+// Compile the Model
+
+model.compile(optimizer= Adam(learning_rate=0.1),
+              loss= BinaryCrossentropy(),
+              metrics='accuracy')
+
+
+// Fit the Model
+history = model.fit(train_dataset, validation_data = val_dataset,epochs=10, verbose = 1)
+
+# Visualize the Loss Curve
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('Model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(["train_loss", "val_loss"])
+plt.show()
+
+# Visualize the Accuracy Curve
+
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('Model Accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('epoch')
+plt.legend(["train_accuracy", "val_accuracy"])
+plt.show()
+
+
+# Testing and Evaluating the Model
+
+test_dataset = test_dataset.batch()
+model.evaluate(test_dataset)
+parasite_or_not(model.predict(test_dataset.take(1))[0][0])
+def parasite_or_not(x):
+  if(x<0.5):
+    return str('P')
+  else:
+    return str('U')
+
+  for i, (image, label) in enumerate(train_dataset.take(16)):
+  ax = plt.subplot(3, 3, i+1)
+  plt.imshow(image[0])
+  plt.title(str(parasite_or_not(label.numpy()[0])) + ":" + str(parasite_or_not(model.predict(image)[0][0])))
+
+  plt.axis('off')
