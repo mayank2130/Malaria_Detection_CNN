@@ -162,4 +162,4 @@ from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.optimizers import Adam 
 from tensorflow.keras.metrics import Accuracy
 
-func_input =  
+func_input = Input(shape = (IM_SIZE, IM_SIZE, 3), name = "model_2")
