@@ -145,3 +145,21 @@ def parasite_or_not(x):
   plt.title(str(parasite_or_not(label.numpy()[0])) + ":" + str(parasite_or_not(model.predict(image)[0][0])))
 
   plt.axis('off')
+
+
+
+
+# Now we are going to build and train our model by building it with functional API.
+
+## Import Dependencies
+import tensorflow as tf
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow_datasets as tfds
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Conv2D, MaxPool2D, Dense, Flatten, InputLayer, BatchNormalization, Input
+from tensorflow.keras.losses import BinaryCrossentropy
+from tensorflow.keras.optimizers import Adam 
+from tensorflow.keras.metrics import Accuracy
+
+func_input =  
