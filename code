@@ -194,8 +194,8 @@ lenet_model_func = Model(func_input, func_output, name="Lenet_Model")
 lenet_model_func.summary()
 
 # Compile the Model
-model_2_func.compile(optimizer = Adam(learning_rate= 0.01),
+lenet_model_func.compile(optimizer = Adam(learning_rate= 0.01),
                      loss = BinaryCrossentropy(),
                      metrics = "accuracy')
 
-history = model_2_func.fit(train_dataset, validation_data = val_dataset, epochs = 5, verbosse = 1)
+history = lenet_model_func.fit(train_dataset, validation_data = val_dataset, epochs = 5, verbosse = 1)
