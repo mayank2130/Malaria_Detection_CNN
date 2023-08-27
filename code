@@ -170,11 +170,10 @@ func_input = Input(shape = (IM_SIZE, IM_SIZE, 3), name = "Input Image")
 
   X =Conv2D(filters=16, kernel_size=3, strides=1, padding='valid', activation='relu')(X)
   X =BatchNormalization()(X)
-  X =MaxPool2D(pool_size=2, strides=2)(X)
-
+  output = MaxPool2D (pool_size = 2, strides = 2)(X)
 
   feature_extractor_model = Model(func_input, func_output, name="Feature_Extractor")
-  feature_extractor_model.summary
+  feature_extractor_model.summary()
 
 
 func_input = Input(shape = (IM_SIZE, IM_SIZE, 3), name = "Input Image")
@@ -199,3 +198,44 @@ lenet_model_func.compile(optimizer = Adam(learning_rate= 0.01),
                      metrics = "accuracy')
 
 history = lenet_model_func.fit(train_dataset, validation_data = val_dataset, epochs = 5, verbosse = 1)
+
+
+# Now we are moving to build and train our model by Model Sub Classing.
+
+## Import Dependencies
+import tensorflow as tf
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow_datasets as tfds
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Layer
+from tensorflow.keras.layers import Conv2D, MaxPool2D, Dense, Flatten, InputLayer, BatchNormalization, Input
+from tensorflow.keras.losses import BinaryCrossentropy
+from tensorflow.keras.optimizers import Adam 
+from tensorflow.keras.metrics import Accuracy
+
+# Build the Model with Model Subclassing
+
+class FeatureExtractor(Layer):
+  def __init__(self): 
+    super(FeatureExtractor, self).__init__()
+
+    self.conv_1 = Conv2D(filters=6, kernel_size=3, strides=1, padding='valid', activation='relu')
+    self.batch_1 = BatchNormalization()
+    self.pool_1 = MaxPool2D(pool_size=2, strides=2)
+
+    self.conv_2 = Conv2D(filters=16, kernel_size=3, strides=1, padding='valid', activation='relu')
+    self.batch_2 = BatchNormalization()
+    self.pool_2 = MaxPool2D(pool_size=2, strides=2)
+  
+  def call(self, X, training):
+    
+    X = self.conv_1(X)
+    X = self.batch_1(X)
+    X = self.pool_1(X)
+
+    X = self.conv_2(X)
+    X = self.batch_2(X)
+    X = self.pool_2(X)
+
+    return(X)
