@@ -162,20 +162,40 @@ from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.optimizers import Adam 
 from tensorflow.keras.metrics import Accuracy
 
-func_input = Input(shape = (IM_SIZE, IM_SIZE, 3), name = "model_2")
+func_input = Input(shape = (IM_SIZE, IM_SIZE, 3), name = "Input Image")
 
-X = Conv2D(filters=6, kernel_size=3, strides=1, padding='valid', activation='relu'),
-                              BatchNormalization(),
-                              MaxPool2D(pool_size=2, strides=2),
+  X = Conv2D(filters=6, kernel_size=3, strides=1, padding='valid', activation='relu')(func_input)
+  X = BatchNormalization()(X)
+  X = MaxPool2D(pool_size=2, strides=2)(X)
 
-                              Conv2D(filters=16, kernel_size=3, strides=1, padding='valid', activation='relu'),
-                              BatchNormalization(),
-                              MaxPool2D(pool_size=2, strides=2),
+  X =Conv2D(filters=16, kernel_size=3, strides=1, padding='valid', activation='relu')(X)
+  X =BatchNormalization()(X)
+  X =MaxPool2D(pool_size=2, strides=2)(X)
 
-                              Flatten(),
 
-                              Dense(256, activation='relu'),
-                              BatchNormalization(),
-                              Dense(128, activation='relu'),
-                              BatchNormalization(),
-                              Dense(1, activation='sigmoid')
+  feature_extractor_model = Model(func_input, func_output, name="Feature_Extractor")
+  feature_extractor_model.summary
+
+
+func_input = Input(shape = (IM_SIZE, IM_SIZE, 3), name = "Input Image")
+X = feature_extractor_model(func_input)
+
+X = Flatten()(X)
+
+X = Dense(256, activation='relu')(X)
+X = BatchNormalization()(X)
+
+X = Dense(128, activation='relu')(X)
+X = BatchNormalization()(X)
+
+func_output = Dense(1, activation='sigmoid')(X)
+
+lenet_model_func = Model(func_input, func_output, name="Lenet_Model")
+lenet_model_func.summary()
+
+# Compile the Model
+model_2_func.compile(optimizer = Adam(learning_rate= 0.01),
+                     loss = BinaryCrossentropy(),
+                     metrics = "accuracy')
+
+history = model_2_func.fit(train_dataset, validation_data = val_dataset, epochs = 5, verbosse = 1)
