@@ -297,9 +297,28 @@ lenet_sub_classed = LenetModel()
 lenet_sub_classed(tf.zeros([1, 224, 224, 3])
 lenet_sub_classed.summary()
 
-# Compile the Model
-lenet_sub_classed.compile(optimizer = Adam(learning_rate= 0.01),
-                     loss = BinaryCrossentropy(),
-                     metrics = "accuracy')
 
-history = lenet_sub_classed.fit(train_dataset, validation_data = val_dataset, epochs = 5, verbosse = 1)
+# Custom Layers
+
+class NeuralearnDense(Layer):
+  def __init__(self, output_units, activation):
+    super(NeuralearnDense, self).__init__()
+    self.output_units = output_units
+    self.activation = activation
+  
+  def build(self, input_features_shape):
+    self.w = self.add_weight(shape = (input_features_shape[-1], self.output_units), initializer = "random_normal", trainable = True)
+    self.b = self.add_weight(shape = (self.output_units,), initializer = "random_normal", trainable = True)
+  
+  def call(self, input_features):
+
+    pre_output = tf.matmul(input_features, self.w) + self.b
+
+    if(self.activation == "relu"):
+      return tf.nn.relu(pre_output)
+
+    elif(self.activation == "sigmoid"):
+      return tf.math.sigmoid(pre_output)
+
+    else:
+      return pre_output
