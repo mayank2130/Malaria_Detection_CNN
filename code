@@ -322,3 +322,28 @@ class NeuralearnDense(Layer):
 
     else:
       return pre_output
+
+IM_SIZE = 224
+lenet_custom_model = tf.keras.Sequential([
+                             InputLayer(input_shape = (IM_SIZE, IM_SIZE, 3)),
+
+                             Conv2D(filters = 6, kernel_size = 3, strides=1, padding='valid', activation = 'relu'),
+                             BatchNormalization(),
+                             MaxPool2D (pool_size = 2, strides= 2),
+
+                             Conv2D(filters = 16, kernel_size = 3, strides=1, padding='valid', activation = 'relu'),
+                             BatchNormalization(),
+                             MaxPool2D (pool_size = 2, strides= 2),
+
+                             Flatten(),
+                             
+                             NeuralearnDense(100, activation = "relu"),
+                             BatchNormalization(),
+                             
+                             NeuralearnDense(10, activation = "relu"),
+                             BatchNormalization(),
+
+                             NeuralearnDense(1, activation = "sigmoid"),
+
+])
+lenet_custom_model.summary()
